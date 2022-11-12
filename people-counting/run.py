@@ -1,24 +1,25 @@
+import argparse
+import csv
+import datetime
+import json
+import os
+import sys
+import time
+from itertools import zip_longest
+
+import cv2
+import dlib
+import imutils
+import numpy as np
+import schedule
+from imutils.video import VideoStream
+
 from centroidtracker import CentroidTracker
 from trackableobject import TrackableObject
-from imutils.video import VideoStream
-import json
-import time
-import schedule
-import csv
-import numpy as np
-import argparse
-import imutils
-import time
-import dlib
-import cv2
-import datetime
-from itertools import zip_longest
-import sys
-import os
 
 t0 = time.time()
 
-cwd = '/home/pi/people-counting'
+cwd = '/home/pi/people-counting/people-counting'
 
 def run():
 
