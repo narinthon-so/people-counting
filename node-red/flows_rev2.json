@@ -1,0 +1,1283 @@
+[
+    {
+        "id": "a31379b0.fc8e68",
+        "type": "subflow",
+        "name": "Tuya IR API",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 80,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "77ffd0f9.f9b17"
+                    },
+                    {
+                        "id": "94f9e2ab.e8d0b"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1440,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "b6b8b7a6.59c6a8",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "TUYA_URL",
+                "type": "str",
+                "value": "https://openapi.tuyaus.com",
+                "ui": {
+                    "label": {
+                        "en-US": "URL"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "TUYA_CLIENT_ID",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Client ID"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "TUYA_SECRET",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Secret"
+                    }
+                }
+            },
+            {
+                "name": "TUYA_DEVICE_ID",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Device ID"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "TUYA_REMOTE_ID",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Remote ID"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "TUYA_ACCESS_TOKEN",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Access token"
+                    }
+                }
+            },
+            {
+                "name": "TUYA_REFRESH_TOKEN",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "label": {
+                        "en-US": "Refresh token"
+                    }
+                }
+            }
+        ],
+        "meta": {},
+        "color": "#DDAA99"
+    },
+    {
+        "id": "5d059fc3.3cb46",
+        "type": "function",
+        "z": "a31379b0.fc8e68",
+        "name": "Add request data",
+        "func": "function calcSign(hash){\n    var hashInBase64 = hash.toString();\n    var signUp = hashInBase64.toUpperCase();\n    return signUp;\n}\n\nvar access_token = flow.get('TUYA_ACCESS_TOKEN')\nvar clientId = env.get('TUYA_CLIENT_ID')\nvar secret = env.get('TUYA_SECRET')\nvar sign = calcSign(msg.payload)\nflow.set('TUYA_EASY_SIGN', sign);\nvar url = env.get('TUYA_URL')\nvar device_id = env.get('TUYA_DEVICE_ID')\nvar remote_id = env.get('TUYA_REMOTE_ID')\n\nmsg.url = `${url}/v2.0/infrareds/${device_id}/air-conditioners/${remote_id}/command`\n\nmsg.headers = {\n    'content-type':'application/json',\n    'client_id':clientId,\n    'sign':sign,\n    't':msg.timestamp,\n    'sign_method':'HMAC-SHA256',\n    'access_token': access_token\n}\n\nmsg.payload = msg.command\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "function getTime(){\n    var timestamp = new Date().getTime();\n    return timestamp;\n}\n\n// flow.set('TUYA_URL', 'https://openapi.tuyaus.com')\n// flow.set('TUYA_CLIENT_ID', 'cncddgetamf6e88fc4cr')\n// flow.set('TUYA_SECRET', 'edbf4848701d4b208ef7ffe31e06b60b')\n// flow.set('TUYA_DEVICE_ID', '85812058e868e76f8707')\n// flow.set('TUYA_REMOTE_ID', 'eb652475d41de898dbtxom')\n// flow.set('TUYA_TIMESTAMP', getTime())\n// flow.set('TUYA_ACCESS_TOKEN', '')\n// flow.set('TUYA_REFRESH_TOKEN', '')",
+        "finalize": "",
+        "libs": [],
+        "x": 1110,
+        "y": 80,
+        "wires": [
+            [
+                "b6b8b7a6.59c6a8"
+            ]
+        ]
+    },
+    {
+        "id": "d84f0092.84859",
+        "type": "hmac",
+        "z": "a31379b0.fc8e68",
+        "name": "",
+        "algorithm": "HmacSHA256",
+        "key": "${TUYA_SECRET}",
+        "x": 930,
+        "y": 80,
+        "wires": [
+            [
+                "5d059fc3.3cb46"
+            ]
+        ]
+    },
+    {
+        "id": "bdffba71.accfa8",
+        "type": "function",
+        "z": "a31379b0.fc8e68",
+        "name": "hash",
+        "func": "function signUrl(device_id, remote_id)\n{\n    return \"POST\" + \"\\n\" \n    + msg.payload + \"\\n\" \n    + \"\" + \"\\n\" \n    + `/v2.0/infrareds/${device_id}/air-conditioners/${remote_id}/command`\n}\nvar clientId = env.get('TUYA_CLIENT_ID')\nvar access_token = msg.access_token\nflow.set('TUYA_ACCESS_TOKEN', access_token)\nmsg.payload = clientId+access_token+msg.timestamp+signUrl(env.get('TUYA_DEVICE_ID'),env.get('TUYA_REMOTE_ID'))\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "function getTime(){\n    var timestamp = new Date().getTime();\n    return timestamp;\n}\n\n// flow.set('TUYA_URL', 'https://openapi.tuyaus.com')\n// flow.set('TUYA_CLIENT_ID', 'cncddgetamf6e88fc4cr')\n// flow.set('TUYA_SECRET', 'edbf4848701d4b208ef7ffe31e06b60b')\n// flow.set('TUYA_DEVICE_ID', '85812058e868e76f8707')\n// flow.set('TUYA_REMOTE_ID', 'eb652475d41de898dbtxom')\n// flow.set('TUYA_TIMESTAMP', getTime())\n// flow.set('TUYA_ACCESS_TOKEN', '')\n// flow.set('TUYA_REFRESH_TOKEN', '')",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 80,
+        "wires": [
+            [
+                "d84f0092.84859"
+            ]
+        ]
+    },
+    {
+        "id": "b6b8b7a6.59c6a8",
+        "type": "http request",
+        "z": "a31379b0.fc8e68",
+        "name": "",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 1310,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "77ffd0f9.f9b17",
+        "type": "subflow:abad22ec.1d1f5",
+        "z": "a31379b0.fc8e68",
+        "name": "Tuya Auth API",
+        "env": [],
+        "x": 240,
+        "y": 80,
+        "wires": [
+            [
+                "44e7ff50.7e917"
+            ]
+        ]
+    },
+    {
+        "id": "94f9e2ab.e8d0b",
+        "type": "change",
+        "z": "a31379b0.fc8e68",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 250,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "44e7ff50.7e917",
+        "type": "change",
+        "z": "a31379b0.fc8e68",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "access_token",
+                "pt": "msg",
+                "to": "payload.result.access_token",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "msg",
+                "to": "timestamp",
+                "tot": "flow"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "command",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 440,
+        "y": 80,
+        "wires": [
+            [
+                "2628a5a15d31084d"
+            ]
+        ]
+    },
+    {
+        "id": "2628a5a15d31084d",
+        "type": "digest",
+        "z": "a31379b0.fc8e68",
+        "name": "HAS body",
+        "algorithm": "SHA256",
+        "x": 620,
+        "y": 80,
+        "wires": [
+            [
+                "bdffba71.accfa8"
+            ]
+        ]
+    },
+    {
+        "id": "abad22ec.1d1f5",
+        "type": "subflow",
+        "name": "Tuya Auth API",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 80,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "65e01f5d.2b6da"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1140,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "cc5a935c.af73d",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "TUYA_SECRET",
+                "type": "env",
+                "value": "TUYA_SECRET"
+            }
+        ],
+        "meta": {},
+        "color": "#DDAA99"
+    },
+    {
+        "id": "c4f54032.8fb4",
+        "type": "http request",
+        "z": "abad22ec.1d1f5",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 770,
+        "y": 80,
+        "wires": [
+            [
+                "cc5a935c.af73d"
+            ]
+        ]
+    },
+    {
+        "id": "cc2f8674.2747a8",
+        "type": "function",
+        "z": "abad22ec.1d1f5",
+        "name": "Get access_token",
+        "func": "function calcSign(hash){\n    var hashInBase64 = hash.toString();\n    var signUp = hashInBase64.toUpperCase();\n    return signUp;\n}\n\nvar url = env.get('TUYA_URL')\nvar easy_refresh_token = env.get('TUYA_REFRESH_TOKEN')\nvar clientId = env.get('TUYA_CLIENT_ID')\nvar secret = env.get('TUYA_SECRET')\nvar sign = calcSign(msg.payload)\n\nmsg.url = `${url}/v1.0/token?grant_type=1`\n\n\nmsg.headers = {\n    'client_id':clientId,\n    'sign':sign,\n    't':msg.timestamp,\n    'sign_method':'HMAC-SHA256'\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// function getTime(){\n//     var timestamp = new Date().getTime();\n//     return timestamp;\n// }\n\n// flow.set('TUYA_URL', 'https://openapi.tuyaus.com')\n// flow.set('TUYA_CLIENT_ID', 'kejm98c7ta5hkmar7f77')\n// flow.set('TUYA_SECRET', 'a25ebb435d974b3d9c7ac5496eedf793')\n// flow.set('TUYA_DEVICE_ID', '4307044094b97e1676b3')\n// flow.set('TUYA_REMOTE_ID', 'eb51dcaa88c069e5626azn')\n// flow.set('TUYA_TIMESTAMP', getTime())\n// flow.set('TUYA_ACCESS_TOKEN', '')\n// flow.set('TUYA_REFRESH_TOKEN', '')\n\n// function calcSign(hash){\n//     var hashInBase64 = hash.toString();\n//     var signUp = hashInBase64.toUpperCase();\n//     return signUp;\n// }\n\n// var clientId = flow.get('TUYA_CLIENT_ID')\n// var secret = flow.get('TUYA_SECRET')\n// var sign = calcSign(msg.payload)\n// flow.set('TUYA_EASY_SIGN', sign);\n\n\n// msg.headers = {\n//     'client_id':clientId,\n//     'sign':sign,\n//     't':msg.timestamp,\n//     'sign_method':'HMAC-SHA256'\n// }\n\n// return msg;",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 80,
+        "wires": [
+            [
+                "c4f54032.8fb4"
+            ]
+        ]
+    },
+    {
+        "id": "7875a1f.b3a8a6",
+        "type": "hmac",
+        "z": "abad22ec.1d1f5",
+        "name": "",
+        "algorithm": "HmacSHA256",
+        "key": "${TUYA_SECRET}",
+        "x": 350,
+        "y": 80,
+        "wires": [
+            [
+                "cc2f8674.2747a8"
+            ]
+        ]
+    },
+    {
+        "id": "65e01f5d.2b6da",
+        "type": "function",
+        "z": "abad22ec.1d1f5",
+        "name": "hash",
+        "func": "function signUrl()\n{\n    return \"GET\" + \"\\n\" + \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" + \"\\n\" + \"\" + \"\\n\" + \"/v1.0/token?grant_type=1\"\n}\n\nvar clientId = env.get('TUYA_CLIENT_ID')\nmsg.timestamp = msg.payload\nmsg.payload = clientId+msg.timestamp+signUrl()\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "function getTime(){\n    var timestamp = new Date().getTime();\n    return timestamp;\n}",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 80,
+        "wires": [
+            [
+                "7875a1f.b3a8a6"
+            ]
+        ]
+    },
+    {
+        "id": "cc5a935c.af73d",
+        "type": "change",
+        "z": "abad22ec.1d1f5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "TUYA_ACCESS_TOKEN",
+                "pt": "flow",
+                "to": "payload.result.access_token",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "TUYA_REFRESH_TOKEN",
+                "pt": "flow",
+                "to": "payload.result.refresh_token",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 980,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bdcf90d1.608d5",
+        "type": "subflow",
+        "name": "Tuya get IR status",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 100,
+                "y": 160,
+                "wires": [
+                    {
+                        "id": "611f6716.754478"
+                    },
+                    {
+                        "id": "702da16d.29e58"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1300,
+                "y": 160,
+                "wires": [
+                    {
+                        "id": "a77facc0.97d84",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "TUYA_URL",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_CLIENT_ID",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_SECRET",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_DEVICE_ID",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_REMOTE_ID",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_ACCESS_TOKEN",
+                "type": "str",
+                "value": ""
+            },
+            {
+                "name": "TUYA_REFRESH_TOKEN",
+                "type": "str",
+                "value": ""
+            }
+        ],
+        "meta": {},
+        "color": "#DDAA99"
+    },
+    {
+        "id": "3d5da99d.743a26",
+        "type": "function",
+        "z": "bdcf90d1.608d5",
+        "name": "Add request data",
+        "func": "function calcSign(hash){\n    var hashInBase64 = hash.toString();\n    var signUp = hashInBase64.toUpperCase();\n    return signUp;\n}\n\nvar access_token = flow.get('TUYA_ACCESS_TOKEN')\nvar clientId = env.get('TUYA_CLIENT_ID')\nvar secret = env.get('TUYA_SECRET')\nvar sign = calcSign(msg.payload)\nflow.set('TUYA_EASY_SIGN', sign);\nvar url = env.get('TUYA_URL')\nvar device_id = env.get('TUYA_DEVICE_ID')\nvar remote_id = env.get('TUYA_REMOTE_ID')\n\n// GET AZ / v2.0 / infrareds / { infrared_id } / remotes / { remote_id } / ac / status\nmsg.url = `${url}/v1.0/infrareds/${device_id}/remotes/${remote_id}/ac/status`\n// msg.url = `${url}/v2.0/infrareds/${device_id}/remotes/${remote_id}/ac/status`\n\nmsg.headers = {\n    'client_id':clientId,\n    'sign':sign,\n    't':msg.timestamp,\n    'sign_method':'HMAC-SHA256',\n    'access_token': access_token\n}\n\nmsg.payload = msg.command\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "function getTime(){\n    var timestamp = new Date().getTime();\n    return timestamp;\n}\n\n// flow.set('TUYA_URL', 'https://openapi.tuyaus.com')\n// flow.set('TUYA_CLIENT_ID', 'kejm98c7ta5hkmar7f77')\n// flow.set('TUYA_SECRET', 'a25ebb435d974b3d9c7ac5496eedf793')\n// flow.set('TUYA_DEVICE_ID', '4307044094b97e1676b3')\n// flow.set('TUYA_REMOTE_ID', 'eb51dcaa88c069e5626azn')\n// flow.set('TUYA_TIMESTAMP', getTime())\n// flow.set('TUYA_ACCESS_TOKEN', '')\n// flow.set('TUYA_REFRESH_TOKEN', '')",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 160,
+        "wires": [
+            [
+                "a77facc0.97d84"
+            ]
+        ]
+    },
+    {
+        "id": "8bebeb68.f11b78",
+        "type": "hmac",
+        "z": "bdcf90d1.608d5",
+        "name": "",
+        "algorithm": "HmacSHA256",
+        "key": "${TUYA_SECRET}",
+        "x": 790,
+        "y": 160,
+        "wires": [
+            [
+                "3d5da99d.743a26"
+            ]
+        ]
+    },
+    {
+        "id": "4c8b8ff5.2ea16",
+        "type": "function",
+        "z": "bdcf90d1.608d5",
+        "name": "hash",
+        "func": "var clientId = env.get('TUYA_CLIENT_ID')\nvar access_token = msg.payload.result.access_token\nflow.set('TUYA_ACCESS_TOKEN', access_token)\nmsg.payload = clientId+access_token+msg.timestamp\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "function getTime(){\n    var timestamp = new Date().getTime();\n    return timestamp;\n}\n\n// flow.set('TUYA_URL', 'https://openapi.tuyaus.com')\n// flow.set('TUYA_CLIENT_ID', 'kejm98c7ta5hkmar7f77')\n// flow.set('TUYA_SECRET', 'a25ebb435d974b3d9c7ac5496eedf793')\n// flow.set('TUYA_DEVICE_ID', '4307044094b97e1676b3')\n// flow.set('TUYA_REMOTE_ID', 'eb51dcaa88c069e5626azn')\n// flow.set('TUYA_TIMESTAMP', getTime())\n// flow.set('TUYA_ACCESS_TOKEN', '')\n// flow.set('TUYA_REFRESH_TOKEN', '')",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 160,
+        "wires": [
+            [
+                "8bebeb68.f11b78"
+            ]
+        ]
+    },
+    {
+        "id": "a77facc0.97d84",
+        "type": "http request",
+        "z": "bdcf90d1.608d5",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 1170,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "611f6716.754478",
+        "type": "subflow:abad22ec.1d1f5",
+        "z": "bdcf90d1.608d5",
+        "name": "Tuya Auth API",
+        "env": [],
+        "x": 260,
+        "y": 160,
+        "wires": [
+            [
+                "cc64bdba.e081c"
+            ]
+        ]
+    },
+    {
+        "id": "702da16d.29e58",
+        "type": "change",
+        "z": "bdcf90d1.608d5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 270,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cc64bdba.e081c",
+        "type": "change",
+        "z": "bdcf90d1.608d5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "msg",
+                "to": "timestamp",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 470,
+        "y": 160,
+        "wires": [
+            [
+                "4c8b8ff5.2ea16"
+            ]
+        ]
+    },
+    {
+        "id": "b1626c8634fea0f1",
+        "type": "tab",
+        "label": "Air conditioner controller",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "20663d84.8ec232",
+        "type": "function",
+        "z": "b1626c8634fea0f1",
+        "name": "Get timestamp",
+        "func": "function getTime(){\n    var timestamp = new Date().getTime();\n    msg.payload = timestamp\n    return msg;\n}\n\nreturn getTime()",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 180,
+        "wires": [
+            [
+                "c0dbef5c.e4c9c",
+                "baaada746f108227"
+            ]
+        ]
+    },
+    {
+        "id": "c0dbef5c.e4c9c",
+        "type": "subflow:bdcf90d1.608d5",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "env": [
+            {
+                "name": "TUYA_URL",
+                "value": "https://openapi.tuyaus.com",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_CLIENT_ID",
+                "value": "w8wn3jgaamytwsts47yp",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_SECRET",
+                "value": "65ad92c37ab945049e383d73a002a2c4",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_DEVICE_ID",
+                "value": "4307044094b97e1676b3",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_REMOTE_ID",
+                "value": "eb085804afb707a2f38srq",
+                "type": "str"
+            }
+        ],
+        "x": 820,
+        "y": 180,
+        "wires": [
+            [
+                "8fa71a1.3cc73e8"
+            ]
+        ]
+    },
+    {
+        "id": "478b06ba.c1f498",
+        "type": "inject",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 350,
+        "y": 180,
+        "wires": [
+            [
+                "20663d84.8ec232"
+            ]
+        ]
+    },
+    {
+        "id": "8fa71a1.3cc73e8",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1070,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "7fa908c2.bbe0b8",
+        "type": "subflow:a31379b0.fc8e68",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "env": [
+            {
+                "name": "TUYA_CLIENT_ID",
+                "value": "w8wn3jgaamytwsts47yp",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_SECRET",
+                "type": "cred"
+            },
+            {
+                "name": "TUYA_DEVICE_ID",
+                "value": "4307044094b97e1676b3",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_REMOTE_ID",
+                "value": "eb085804afb707a2f38srq",
+                "type": "str"
+            },
+            {
+                "name": "TUYA_ACCESS_TOKEN",
+                "type": "cred"
+            },
+            {
+                "name": "TUYA_REFRESH_TOKEN",
+                "type": "cred"
+            }
+        ],
+        "x": 1770,
+        "y": 380,
+        "wires": [
+            [
+                "b5bd9dcfd66adc65"
+            ]
+        ]
+    },
+    {
+        "id": "3ecfc23c.5bff9e",
+        "type": "function",
+        "z": "b1626c8634fea0f1",
+        "name": "Change temp",
+        "func": "msg.command = {\n    \"code\": \"temp\",\n    // \"value\": msg.payload.currentTemperature\n    \"value\": 25\n}\nmsg.command = JSON.stringify(msg.command)\nmsg.payload = new Date().getTime();\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1520,
+        "y": 340,
+        "wires": [
+            [
+                "7fa908c2.bbe0b8"
+            ]
+        ]
+    },
+    {
+        "id": "36a85c239a01f461",
+        "type": "exec",
+        "z": "b1626c8634fea0f1",
+        "command": "/home/pi/.virtualenvs/cv/bin/python3.9 /home/pi/people-counting/run.py",
+        "addpay": "",
+        "append": "--input /home/pi/people-counting/videos/example_03.mp4 -s 30 -c 0.2 --no-display",
+        "useSpawn": "true",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "exec people counting",
+        "x": 400,
+        "y": 380,
+        "wires": [
+            [
+                "57ecb6e9ed152720"
+            ],
+            [
+                "b054e9e6b3812cfc"
+            ],
+            [
+                "3b829f664c9ba9d6"
+            ]
+        ]
+    },
+    {
+        "id": "3fe96b5e5ca350c7",
+        "type": "inject",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 380,
+        "wires": [
+            [
+                "36a85c239a01f461"
+            ]
+        ]
+    },
+    {
+        "id": "57ecb6e9ed152720",
+        "type": "json",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 630,
+        "y": 380,
+        "wires": [
+            [
+                "0477e8d852bb3376",
+                "1472358024d6d35f",
+                "62045f4ca52f22fc",
+                "1baaf64856818237",
+                "9736a4f46fce22f3",
+                "13330d3ab34d886c",
+                "0e433eea18908cbb"
+            ]
+        ]
+    },
+    {
+        "id": "0477e8d852bb3376",
+        "type": "ui_text",
+        "z": "b1626c8634fea0f1",
+        "group": "663d26e3605c7dd6",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Enter",
+        "format": "{{msg.payload.enter}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 810,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "1472358024d6d35f",
+        "type": "ui_text",
+        "z": "b1626c8634fea0f1",
+        "group": "663d26e3605c7dd6",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Exit",
+        "format": "{{msg.payload.exit}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 810,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "62045f4ca52f22fc",
+        "type": "ui_text",
+        "z": "b1626c8634fea0f1",
+        "group": "663d26e3605c7dd6",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Inside",
+        "format": "{{msg.payload.inside[0]}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 810,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "1baaf64856818237",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "Enter",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.enter",
+        "statusType": "msg",
+        "x": 950,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "9736a4f46fce22f3",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "Exit",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.exit",
+        "statusType": "msg",
+        "x": 950,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "13330d3ab34d886c",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "Inside",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload.inside[0]",
+        "statusType": "msg",
+        "x": 950,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "0e433eea18908cbb",
+        "type": "function",
+        "z": "b1626c8634fea0f1",
+        "name": "Calculate",
+        "func": "prevInside = flow.get('peopleInside')\ninside = msg.payload.inside[0]\nif (prevInside!=inside)\n{\n    flow.set('peopleInside', inside)\n    if(inside <= 0)\n    {\n        flow.set('currentStatus', 0)\n    }\n    else if (inside >= 30)\n    {\n        if(flow.get('currentStatus') == 0)\n        {\n            flow.set('currentStatus', 1)\n        }\n        flow.set('currentTemperature', 22)\n    }\n    else\n    {\n        if(flow.get('currentStatus') == 0)\n        {\n            flow.set('currentStatus', 1)\n        }\n        currentTemp = 22 - ((inside - 30) * (-5) / (-29))\n        flow.set('currentTemperature', currentTemp)\n    }\n    msg.payload.currentTemperature = flow.get('currentTemperature')\n    msg.payload.currentStatus = flow.get('currentStatus')\n    msg.payload.peopleInside = flow.get('peopleInside')\n}\nelse\n{\n    msg.payload == null\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\nflow.set('currentTemperature', 25)\nflow.set('currentStatus', 0) // 0:off, 1:on\nflow.set('peopleInside', 0)",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 380,
+        "wires": [
+            [
+                "a8b8c7bea76be9e0"
+            ]
+        ]
+    },
+    {
+        "id": "e8b7d6a2.67f1f8",
+        "type": "function",
+        "z": "b1626c8634fea0f1",
+        "name": "OnOff",
+        "func": "msg.command = {\n    \"code\": \"power\",\n    // \"value\": msg.payload.currentStatus\n    \"value\": 1\n}\nmsg.command = JSON.stringify(msg.command)\nmsg.payload = new Date().getTime();\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1490,
+        "y": 420,
+        "wires": [
+            [
+                "7fa908c2.bbe0b8"
+            ]
+        ]
+    },
+    {
+        "id": "a8b8c7bea76be9e0",
+        "type": "switch",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "hask",
+                "v": "currentTemperature",
+                "vt": "str"
+            },
+            {
+                "t": "hask",
+                "v": "currentStatus",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1310,
+        "y": 380,
+        "wires": [
+            [
+                "3ecfc23c.5bff9e",
+                "da6944dfd1654068"
+            ],
+            [
+                "e8b7d6a2.67f1f8",
+                "a8f66ff5cdead8ca"
+            ]
+        ]
+    },
+    {
+        "id": "b5bd9dcfd66adc65",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "Tuya IR API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1990,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "a8f66ff5cdead8ca",
+        "type": "ui_text",
+        "z": "b1626c8634fea0f1",
+        "group": "1dd969ec72133a0d",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Status",
+        "format": "{{msg.payload.currentStatus==0?'Off':'On'}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 1490,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "da6944dfd1654068",
+        "type": "ui_text",
+        "z": "b1626c8634fea0f1",
+        "group": "1dd969ec72133a0d",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Current temperature",
+        "format": "{{msg.payload.currentTemperature.toFixed(2)}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 1540,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "879f13714fc3bb13",
+        "type": "comment",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "info": "set argument\n`--input /home/pi/people-counting/videos/example_01.mp4 -s 30 -c 0.2 --no-display`\nfor test by videofile\n\nand remove this for user raspberry camera",
+        "x": 360,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "b054e9e6b3812cfc",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "3b829f664c9ba9d6",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "5cc8413dab253e58",
+        "type": "inject",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 1320,
+        "y": 500,
+        "wires": [
+            [
+                "e8b7d6a2.67f1f8"
+            ]
+        ]
+    },
+    {
+        "id": "baaada746f108227",
+        "type": "debug",
+        "z": "b1626c8634fea0f1",
+        "name": "debug 1",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "75107f6c7d74958e",
+        "type": "inject",
+        "z": "b1626c8634fea0f1",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 1320,
+        "y": 280,
+        "wires": [
+            [
+                "3ecfc23c.5bff9e"
+            ]
+        ]
+    },
+    {
+        "id": "663d26e3605c7dd6",
+        "type": "ui_group",
+        "name": "Default",
+        "tab": "f693b5327422099d",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "1dd969ec72133a0d",
+        "type": "ui_group",
+        "name": "Air Conditioner",
+        "tab": "f693b5327422099d",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "f693b5327422099d",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
