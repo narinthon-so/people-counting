@@ -19,7 +19,8 @@ from trackableobject import TrackableObject
 
 t0 = time.time()
 
-cwd = '/home/pi/people-counting/people-counting'
+# cwd = '/home/pi/people-counting/people-counting'
+cwd = 'D:/Dev/repo/people-counting/people-counting'
 
 def run():
 
@@ -201,13 +202,15 @@ def run():
                 # เซ็คว่าได้นับยัง
                 if not to.counted:
                     # ถ้าค่า direction ไปในทางลบ ก็แสดงว่าวัตถุนั้นกำลังไปทางซ้าย
-                    if direction < 0 and centroid[0] < W // 2:
+                    if direction > 0 and centroid[0] > W // 2:
+                    # if direction < 0 and centroid[0] < W // 2:
                         totalLeft += 1
                         empty.append(totalLeft)
                         to.counted = True
 
                     # ถ้าไม่ก็ทางขวา
-                    elif direction > 0 and centroid[0] > W // 2:
+                    elif direction < 0 and centroid[0] < W // 2:
+                    # elif direction > 0 and centroid[0] > W // 2:
                         totalRight += 1
                         empty1.append(totalRight)
                         to.counted = True
